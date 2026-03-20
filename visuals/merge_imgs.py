@@ -93,18 +93,34 @@ def plot_four_images(
 
 
 if __name__ == "__main__":
-    # Example usage
-    savedir=r"H:\My Drive\Research_collabs\MODEST Research Collab\CVPR_visuals\rebuttal_pdfs"
-    image_data = [
-        (savedir + r"\Charuco.PNG", "ChArUco Pattern"),
-        (savedir + r"\rectified_lefts_rectified_lefts_idx7.PNG", "Rectified Left"),
-        (savedir + r"\rectified_rights_rectified_rights_idx7.PNG", "Rectified Right"),
-        (savedir + r"\Foundation.PNG", "Foundation Stereo"),
-    ]
-    
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Combine 4 images into a 1×4 CVPR/ECCV publication figure.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Example
+-------
+    python visuals/merge_imgs.py \\
+        --images charuco.png rect_left.png rect_right.png foundation.png \\
+        --titles "ChArUco" "Rectified Left" "Rectified Right" "Foundation Stereo" \\
+        --out_dir /path/to/output --dpi 900 --filename merged_figure
+""",
+    )
+    parser.add_argument('--images', nargs=4, required=True,
+                        metavar='IMG',
+                        help='Exactly 4 image paths.')
+    parser.add_argument('--titles', nargs=4, required=True,
+                        metavar='TITLE',
+                        help='Column title for each image.')
+    parser.add_argument('--out_dir', required=True,
+                        help='Output directory.')
+    parser.add_argument('--dpi',      type=int, default=900)
+    parser.add_argument('--filename', default='merged_images')
+    args = parser.parse_args()
+
     plot_four_images(
-        image_data=image_data,
-        savedir=savedir,
-        dpi=900,
-        filename="merged_images"
+        image_data=list(zip(args.images, args.titles)),
+        savedir=args.out_dir,
+        dpi=args.dpi,
+        filename=args.filename,
     )

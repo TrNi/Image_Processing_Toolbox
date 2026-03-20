@@ -209,28 +209,47 @@ def process_image_list(image_list, save_dir):
     print(f"\nProcessing complete! PDFs saved to: {save_dir}")
 
 
-# Example usage
 if __name__ == "__main__":
-    # Example list of images with their parameters
-    image_list = [
-        # Regular image files: (image_path, row_trim_per_side, col_trim_per_side, pdf_dpi)
-        # (r"H:\My Drive\Research_collabs\MODEST Research Collab\CVPR_visuals\IMG_6425.JPG", 474, 711, 900),
-        (r"H:\My Drive\Research_collabs\MODEST Research Collab\CVPR_visuals\IMG_6425.CR2", 118, 178, 900),
-        
-        
-        # HDF5 files: (h5_name, dataset_name, index, row_trim_per_side, col_trim_per_side, pdf_dpi)
-        # (r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset" +\
-        #  r"\Scene1\EOS6D_B_Left\fl_40mm\inference\F2.8\rectified\rectified_lefts.h5", 
-        #   "rectified_lefts", 7, 85, 128, 600),
-        # (r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset" +\
-        #  r"\Scene1\EOS6D_A_Right\fl_40mm\inference\F2.8\rectified\rectified_rights.h5", 
-        #   "rectified_rights", 7, 85, 128, 600),
-        # ("path/to/data.h5", "images", 0, 10, 20, 300),
-        # ("path/to/data.h5", "images", 1, 10, 20, 300),
-    ]
-    
-    # Directory where PDFs will be saved
-    save_dir = r"H:\My Drive\Research_collabs\MODEST Research Collab\CVPR_visuals\rebuttal_pdfs"
-    
-    # Process all images
-    process_image_list(image_list, save_dir)
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Trim images/HDF5 arrays and save as high-DPI PDF + PNG.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples
+--------
+    # Regular image file
+    python visuals/jpg_to_pdf.py \\
+        --image /path/to/photo.JPG \\
+        --row_trim 100 --col_trim 150 --dpi 600 --out_dir /path/to/output
+
+    # HDF5 image (index 7 from a dataset)
+    python visuals/jpg_to_pdf.py \\
+        --h5 /path/to/data.h5 --dataset images --index 7 \\
+        --row_trim 85 --col_trim 128 --dpi 600 --out_dir /path/to/output
+""",
+    )
+    parser.add_argument('--out_dir', required=True,
+                        help="Directory where PDFs will be saved.")
+    parser.add_argument('--row_trim', type=int, default=0,
+                        help="Rows to trim from top and bottom.")
+    parser.add_argument('--col_trim', type=int, default=0,
+                        help="Columns to trim from left and right.")
+    parser.add_argument('--dpi', type=int, default=600,
+                        help="Output PDF/PNG DPI (default: 600).")
+    # Mutually exclusive source group
+    src = parser.add_mutually_exclusive_group(required=True)
+    src.add_argument('--image', help="Path to a regular image file (JPG, PNG, CR2, ...).")
+    src.add_argument('--h5',    help="Path to an HDF5 file.")
+    parser.add_argument('--dataset', default='data',
+                        help="HDF5 dataset name (used with --h5).")
+    parser.add_argument('--index', type=int, default=0,
+                        help="Frame index within the HDF5 dataset (used with --h5).")
+    args = parser.parse_args()
+
+    if args.image:
+        image_list = [(args.image, args.row_trim, args.col_trim, args.dpi)]
+    else:
+        image_list = [(args.h5, args.dataset, args.index,
+                       args.row_trim, args.col_trim, args.dpi)]
+
+    process_image_list(image_list, args.out_dir)

@@ -1,8 +1,42 @@
-plotly>=5.0.0
-numpy>=1.20.0
-h5py>=3.0.0
-opencv-python>=4.5.0
-scipy>=1.7.0
-ipywidgets>=7.6.0
-nbformat>=4.2.0
-kaleido
+# ────────────────────────────────────────────────────────────────────────────
+# Image Processing Toolbox — Python dependencies
+# Install with:  pip install -r requirements.txt
+# Optional extras are marked with a comment.
+# ────────────────────────────────────────────────────────────────────────────
+
+# ── Core numerical / array ──────────────────────────────────────────────────
+numpy>=1.24.0
+scipy>=1.10.0
+
+# ── Image I/O and processing ────────────────────────────────────────────────
+opencv-python>=4.7.0
+Pillow>=9.5.0
+scikit-image>=0.21.0
+
+# ── HDF5 data storage ───────────────────────────────────────────────────────
+h5py>=3.8.0
+
+# ── Visualisation and plotting ──────────────────────────────────────────────
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.14.0
+kaleido>=0.2.1          # static export for Plotly figures
+
+# ── Notebook / widget support ───────────────────────────────────────────────
+ipywidgets>=8.0.0
+nbformat>=5.7.0
+
+# ── Calibration (OpenCV contrib) ────────────────────────────────────────────
+opencv-contrib-python>=4.7.0  # provides cv2.aruco
+
+# ── Camera raw file support (optional — needed for CR2/RAW processing) ──────
+rawpy>=0.18.0           # pip install rawpy
+
+# ── PDF generation ──────────────────────────────────────────────────────────
+# Pillow handles PDF output natively (no extra package needed)
+
+# ── 3-D point cloud analysis (optional — needed for ICP/GICP error maps) ───
+# open3d>=0.17.0        # pip install open3d  (heavy; skip if not using depth_analysis)
+
+# ── Bokeh interactive plots (optional — needed for vis_blur_rois) ────────────
+# bokeh>=3.0.0          # pip install bokeh

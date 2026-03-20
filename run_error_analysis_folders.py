@@ -1,50 +1,24 @@
-from get_errors import Get_errors_and_GT
-import visualize_error_analysis as viz
+﻿"""
+run_error_analysis_folders.py
+-------
+This script has been reorganised.
+New location: pipelines.run_depth_analysis_folders
+
+Update your imports:
+    from pipelines.run_depth_analysis_folders import ...
+
+Or run directly:
+    python pipelines/run_depth_analysis_folders.py --help
+"""
+import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-def main():
-    # Define the dataset folders to process
-    datalist = [
-        # "E:\\pub_results\\scene9_fl28mm_F2.8\\err_GT",
-        # "E:\\pub_results\\scene9_fl32mm_F2.8\\err_GT",
-        # "E:\\pub_results\\scene9_fl36mm_F2.8\\err_GT",
-        # "E:\\pub_results\\scene9_fl40mm_F2.8\\err_GT",
-        # "E:\\pub_results\\scene9_fl45mm_F2.8\\err_GT",
-        # "E:\\pub_results\\scene9_fl60mm_F2.8\\err_GT",
-        # "E:\\pub_results\\scene9_fl65mm_F2.8\\err_GT",
-        # "E:\\pub_results\\scene9_fl70mm_F2.8\\err_GT",
-        # r"E:\\pub_results\\scene9_fl70mm_F2.8\\err_GT",
-        "E:\\pub_results\\scene9_fl70mm_F5.0\\err_GT",
-        # "E:\\pub_results\\scene9_fl70mm_F9.0\\err_GT",
-        # "E:\\pub_results\\scene9_fl70mm_F16.0\\err_GT",
-        # "E:\\pub_results\\scene9_fl70mm_F22.0\\err_GT",
-        # Add more folder paths as needed
-    ]
+from pipelines.run_depth_analysis_folders import *  # noqa: F401,F403 (re-export for backward compat)
 
-    # Define models to analyze
-    MONO_MODELS = ['depthpro', 'metric3d', 'unidepth', 'depth_anything']
-    STEREO_MODELS = ['monster', 'foundation', 'defom', 'selective']
-    ALL_MODELS = MONO_MODELS + STEREO_MODELS
-
-    print("Step 1: Computing errors...")
-    # Initialize and run error computation
-    # error_computer = Get_errors_and_GT(datalist, MONO_MODELS, STEREO_MODELS)
-    # error_computer.save_errors()
-    print("Error computation complete.")
-
-    print("\nStep 2: Generating visualizations...")
-    # Run visualization analysis
-    for base_folder in datalist:
-        base = Path(base_folder)
-        error_data_path = base / "error_data.pkl"
-        viz.main(datalist=[{"base": base_folder}], specific_path=error_data_path)
-
-    print("\nAnalysis complete! Check the output directories for:")
-    print("1. error_data.pkl - Raw error data")
-    print("2. error_percentiles.csv - Statistical analysis")
-    print("3. error_cdf_*.png - Error distribution plots")
-    print("4. depth_maps_*.png - Depth map visualizations")
-    print("5. error_maps_*.png - Error map visualizations")
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    try:
+        from pipelines.run_depth_analysis_folders import main
+        main()
+    except ImportError:
+        pass
