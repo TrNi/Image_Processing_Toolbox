@@ -2,8 +2,10 @@ import h5py
 import os
 import numpy as np
 
-stereonames = ["monster", "foundation", "defom", "selective"]
-mononames = ["depthpro", "metric3d", "unidepth", "anything"]
+# Keywords used to identify stereo / mono depth HDF5 files.
+# Override via --stereo_names / --mono_names CLI arguments or edit here.
+stereonames: list = []
+mononames: list = []
 
 
 def process_h5_pair(left_path, left_id, right_path, right_id, output_folder, stereo_folder=None, mono_folder=None):
@@ -14,7 +16,7 @@ def process_h5_pair(left_path, left_id, right_path, right_id, output_folder, ste
         left_path (str): Path to the left H5 file
         left_id (int): Index to extract from left H5 file
         right_path (str): Path to the right H5 file
-        right_id (int): Index to extract from right H5 file
+        right_id (int): Index to extract from right file
         output_folder (str): Path to the output folder
     """
     # Create output folder if it doesn't exist
@@ -95,91 +97,49 @@ def process_multiple_pairs(pairs_dict):
         except Exception as e:
             print(f"Error processing pair {pair_id}: {str(e)}")
 
-# Example usage:
 if __name__ == "__main__":
-    # Example dictionary structure
-    pairs = {
-        "pair1": {
-            "left_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified\\rectified_lefts.h5",
-            "left_id": 2,
-            "right_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_B_Right\\fl_70mm\\inference\\F16.0\\rectified\\rectified_rights.h5",
-            "right_id": 2,
-            "output_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\illusions_used_S6_3",
-            "stereo_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified",
-            "mono_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\monodepth"
-        },
-        "pair2": {
-            "left_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified\\rectified_lefts.h5",
-            "left_id":17,
-            "right_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_B_Right\\fl_70mm\\inference\\F16.0\\rectified\\rectified_rights.h5",
-            "right_id": 17,
-            "output_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\illusions_used_S6_16",
-            "stereo_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified",
-            "mono_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\monodepth"
-        },
-        "pair3": {
-            "left_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified\\rectified_lefts.h5",
-            "left_id": 16,
-            "right_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_B_Right\\fl_70mm\\inference\\F16.0\\rectified\\rectified_rights.h5",
-            "right_id": 16,
-            "output_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\illusions_used_S6_15",
-            "stereo_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified",
-            "mono_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\monodepth"
-        },
-        "pair4": {
-            "left_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified\\rectified_lefts.h5",
-            "left_id": 9,
-            "right_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_B_Right\\fl_70mm\\inference\\F16.0\\rectified\\rectified_rights.h5",
-            "right_id": 9,
-            "output_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\illusions_used_S6_8",
-            "stereo_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified",
-            "mono_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\monodepth"
-        },
-        "pair5": {
-            "left_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified\\rectified_lefts.h5",
-            "left_id": 11,
-            "right_path": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_B_Right\\fl_70mm\\inference\\F16.0\\rectified\\rectified_rights.h5",
-            "right_id": 11,
-            "output_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\illusions_used_S6_10",
-            "stereo_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified",
-            "mono_folder": "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\monodepth"
-        }
-        # "pair1": {
-        #     "left_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_B_Left\\fl_40mm\\inference\\F2.8\\rectified\\rectified_lefts.h5",
-        #     "left_id": 7,
-        #     "right_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_A_Right\\fl_40mm\\inference\\F2.8\\rectified\\rectified_rights.h5",
-        #     "right_id": 7,
-        #     "output_folder": "I:\\My Drive\\Pubdata\\illusion_crops_new\\S9_f40_img_3901"
-        # },
-        # "pair2": {
-        #     "left_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_B_Left\\fl_45mm\\inference\\F2.8\\rectified\\rectified_lefts.h5",
-        #     "left_id": 2,
-        #     "right_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_A_Right\\fl_45mm\\inference\\F2.8\\rectified\\rectified_rights.h5",
-        #     "right_id": 2,
-        #     "output_folder": "I:\\My Drive\\Pubdata\\illusion_crops_new\\S9_f45_img_3962"
-        # },
-        # "pair3": {
-        #     "left_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_B_Left\\fl_45mm\\inference\\F2.8\\rectified\\rectified_lefts.h5",
-        #     "left_id": 15,
-        #     "right_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_A_Right\\fl_45mm\\inference\\F2.8\\rectified\\rectified_rights.h5",
-        #     "right_id": 15,
-        #     "output_folder": "I:\\My Drive\\Pubdata\\illusion_crops_new\\S9_f45_img_4023"
-        # },
-        # "pair4": {
-        #     "left_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_B_Left\\fl_60mm\\inference\\F2.8\\rectified\\rectified_lefts.h5",
-        #     "left_id": 8,
-        #     "right_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_A_Right\\fl_60mm\\inference\\F2.8\\rectified\\rectified_rights.h5",
-        #     "right_id": 8,
-        #     "output_folder": "I:\\My Drive\\Pubdata\\illusion_crops_new\\S9_f60_img_4378"
-        # },
-        # "pair5": {
-        #     "left_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_B_Left\\fl_60mm\\inference\\F2.8\\rectified\\rectified_lefts.h5",
-        #     "left_id": 10,
-        #     "right_path": "I:\\My Drive\\Pubdata\\Scene9\\EOS6D_A_Right\\fl_60mm\\inference\\F2.8\\rectified\\rectified_rights.h5",
-        #     "right_id": 10,
-        #     "output_folder": "I:\\My Drive\\Pubdata\\illusion_crops_new\\S9_f60_img_4380"
-        # }
-        # Add more pairs as needed
-    }
-    
+    import sys
+    import argparse
+    import json
+
+    parser = argparse.ArgumentParser(
+        description="Extract single-frame HDF5 crops for stereo / mono depth pairs.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Config JSON format
+------------------
+{
+  "pair1": {
+    "left_path": "/data/scene/rectified/rectified_lefts.h5",
+    "left_id": 2,
+    "right_path": "/data/scene/rectified/rectified_rights.h5",
+    "right_id": 2,
+    "output_folder": "/data/output/crop_1",
+    "stereo_folder": "/data/scene/rectified",
+    "mono_folder": "/data/scene/monodepth"
+  }
+}
+
+Example
+-------
+    python visuals/mono_stereo_depths/prepare_jpg_h5.py \\
+        --config /path/to/pairs.json \\
+        --stereo_names model_c model_d \\
+        --mono_names model_a model_b
+""",
+    )
+    parser.add_argument('--config', required=True,
+                        help='JSON file defining the pairs to process (see above).')
+    parser.add_argument('--stereo_names', nargs='+', default=[],
+                        help='Keywords identifying stereo depth HDF5 files.')
+    parser.add_argument('--mono_names', nargs='+', default=[],
+                        help='Keywords identifying monocular depth HDF5 files.')
+    args = parser.parse_args()
+
+    stereonames = args.stereo_names
+    mononames   = args.mono_names
+
+    with open(args.config) as fh:
+        pairs = json.load(fh)
+
     process_multiple_pairs(pairs)

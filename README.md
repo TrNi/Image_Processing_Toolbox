@@ -234,12 +234,12 @@ Outputs: `charuco_board.png`, `charuco_board.pdf`, `charuco_board.pkl`.
 **Single configuration:**
 ```bash
 python pipelines/run_depth_analysis.py \
-    --base /data/MODEST/Scene6 \
-    --left_cam EOS6D_B_Left --right_cam EOS6D_A_Right \
+    --base /path/to/dataset/scene \
+    --left_cam <left_camera_dir> --right_cam <right_camera_dir> \
     --fl 70 --F 2.8 \
-    --mono_models depthpro metric3d unidepth depth_anything \
-    --stereo_models monster foundation defom selective \
-    --out_root /data/output \
+    --mono_models model_a model_b \
+    --stereo_models model_c model_d \
+    --out_root /path/to/output \
     --visualise
 ```
 
@@ -278,10 +278,12 @@ python visuals/merge_imgs.py \
 
 ```bash
 python pipelines/run_depth_analysis.py \
-    --base /data/MODEST/Scene9 \
-    --left_cam EOS6D_B_Left --right_cam EOS6D_A_Right \
+    --base /path/to/dataset/scene \
+    --left_cam <left_camera_dir> --right_cam <right_camera_dir> \
     --fl 70 --F 2.8 \
-    --out_root /data/output \
+    --mono_models model_a model_b \
+    --stereo_models model_c model_d \
+    --out_root /path/to/output \
     --visualise
 ```
 
@@ -308,11 +310,11 @@ python calibration/charuco_board.py \
 
 ```bash
 python visualization/plots_from_csvs.py \
-    --focal_csvs fl28:/data/out/fl28/error_percentiles.csv \
-                 fl70:/data/out/fl70/error_percentiles.csv \
-    --aperture_csvs F2.8:/data/out/F2.8/error_percentiles.csv \
-                    F22:/data/out/F22/error_percentiles.csv \
-    --out_dir /data/plots
+    --focal_csvs fl28:/path/to/output/config_fl28_F2.8/err_GT/error_percentiles.csv \
+                 fl70:/path/to/output/config_fl70_F2.8/err_GT/error_percentiles.csv \
+    --aperture_csvs F2.8:/path/to/output/config_fl70_F2.8/err_GT/error_percentiles.csv \
+                    F22:/path/to/output/config_fl70_F22.0/err_GT/error_percentiles.csv \
+    --out_dir /path/to/output/plots
 ```
 
 ### 6 — Programmatic API
@@ -330,31 +332,31 @@ fused        = simple_weighted_fusion(depth_stack, uncertainty)  # (480, 640)
 
 ## Dataset Conventions
 
-The toolbox assumes a directory structure compatible with the
-**MODEST (Multi-Optics Depth Estimation Stereo) dataset** layout:
+The depth analysis modules expect the following directory layout.
+All placeholder names (angle-brackets) are user-defined.
 
 ```
 <scene_root>/
     <left_camera>/
-        fl_<F>mm/
+        fl_<focal_mm>mm/
             inference/
                 F<aperture>/
                     rectified/
-                        rectified_lefts.h5
+                        rectified_lefts.h5      ← packed rectified left frames
                         monodepth/
-                            <model>_depth.h5
+                            <model>_depth.h5    ← one file per mono model
                     stereodepth/
-                        <model>_depth.h5
+                        <model>_depth.h5        ← one file per stereo model
     <right_camera>/
-        fl_<F>mm/
+        fl_<focal_mm>mm/
             inference/
                 F<aperture>/
                     rectified/
-                        rectified_rights.h5
-    stereocal_params_<F>mm.npz
+                        rectified_rights.h5     ← packed rectified right frames
+    stereocal_params_<focal_mm>mm.npz           ← stereo calibration parameters
 ```
 
-The `stereocal_params_*.npz` files must contain keys `P1`, `P2`, `baseline`, `fB`.
+The `stereocal_params_*.npz` file must contain keys `P1`, `P2`, `baseline`, `fB`.
 
 ---
 

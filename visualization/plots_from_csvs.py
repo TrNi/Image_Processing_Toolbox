@@ -11,10 +11,10 @@ Usage
 ::
 
     python visualization/plots_from_csvs.py \\
-        --focal_csvs fl28:/data/scene9_fl28mm_F2.8/err_GT/error_percentiles.csv \\
-                     fl70:/data/scene9_fl70mm_F2.8/err_GT/error_percentiles.csv \\
-        --aperture_csvs F2.8:/data/scene9_fl70mm_F2.8/err_GT/error_percentiles.csv \\
-                        F22:/data/scene9_fl70mm_F22.0/err_GT/error_percentiles.csv \\
+        --focal_csvs fl28:/data/output/config_fl28_F2.8/err_GT/error_percentiles.csv \\
+                     fl70:/data/output/config_fl70_F2.8/err_GT/error_percentiles.csv \\
+        --aperture_csvs F2.8:/data/output/config_fl70_F2.8/err_GT/error_percentiles.csv \\
+                        F22:/data/output/config_fl70_F22.0/err_GT/error_percentiles.csv \\
         --out_dir /path/to/output \\
         --percentile p50
 """
@@ -70,16 +70,10 @@ ERROR_PLOTNAMES = {
     "Pnorm":    "P_norm",
 }
 
-MODEL_PLOTNAMES = {
-    "Depth Pro":        "m:DepthPro",
-    "Metric3D V2":      "m:Metric3D",
-    "UniDepth V2":      "m:UniDepth",
-    "DAV2":             "m:DAV2",
-    "MonSter":          "s:MonSter",
-    "Foundation Stereo": "s:Foundation",
-    "DEFOM Stereo":     "s:DEFOM",
-    "Selective IGEV":   "s:Selective",
-}
+# Map model display names to short plot labels.
+# Populate this with your own model names before running.
+# e.g. MODEL_PLOTNAMES = {'My Model': 'm:MyModel', 'Baseline': 's:Baseline'}
+MODEL_PLOTNAMES: dict = {}
 
 
 # ---------------------------------------------------------------------------
@@ -238,11 +232,11 @@ def main():
 Example
 -------
     python visualization/plots_from_csvs.py \\
-        --focal_csvs fl28:/data/out/scene9_fl28mm_F2.8/err_GT/error_percentiles.csv \\
-                     fl70:/data/out/scene9_fl70mm_F2.8/err_GT/error_percentiles.csv \\
-        --aperture_csvs F2.8:/data/out/scene9_fl70mm_F2.8/err_GT/error_percentiles.csv \\
-                        F22.0:/data/out/scene9_fl70mm_F22.0/err_GT/error_percentiles.csv \\
-        --out_dir /data/out/plots \\
+        --focal_csvs fl28:/data/output/config_fl28_F2.8/err_GT/error_percentiles.csv \\
+                     fl70:/data/output/config_fl70_F2.8/err_GT/error_percentiles.csv \\
+        --aperture_csvs F2.8:/data/output/config_fl70_F2.8/err_GT/error_percentiles.csv \\
+                        F22.0:/data/output/config_fl70_F22.0/err_GT/error_percentiles.csv \\
+        --out_dir /path/to/output \\
         --percentile p50
 """,
     )

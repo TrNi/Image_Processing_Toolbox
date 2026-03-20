@@ -23,8 +23,8 @@ Usage
         --base /path/to/scene \\
         --left_rectified rectified_h5/rectified_lefts.h5 \\
         --params stereocal_params.npz \\
-        --depths monster:stereodepth/leftview_disp_depth_monster.h5 \\
-                 foundation:stereodepth/leftview_disp_depth_foundation.h5 \\
+        --depths model_a:stereodepth/depth_model_a.h5 \\
+                 model_b:stereodepth/depth_model_b.h5 \\
         --anonymous
 
 Call :func:`visualize_depth_maps` from another script for programmatic use.
@@ -424,11 +424,11 @@ Examples
 Run with two stereo depth models:
 
     python visualization/visualize_depth.py \\
-        --base /data/scene6 \\
+        --base /path/to/scene \\
         --left_rectified rectified_h5/rectified_lefts.h5 \\
         --params stereocal_params.npz \\
-        --depths monster:stereodepth/depth_monster.h5 \\
-                 foundation:stereodepth/depth_foundation.h5
+        --depths model_a:stereodepth/depth_model_a.h5 \\
+                 model_b:stereodepth/depth_model_b.h5
 
 Anonymise model names (stereo 0, stereo 1, …):
 

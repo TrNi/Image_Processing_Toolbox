@@ -13,11 +13,11 @@ Usage
 
     python pipelines/run_depth_analysis.py \\
         --base      /path/to/scene \\
-        --left_cam  EOS6D_B_Left \\
-        --right_cam EOS6D_A_Right \\
+        --left_cam  <left_camera_dir> \\
+        --right_cam <right_camera_dir> \\
         --fl  70 --F 2.8 \\
-        --mono_models  depthpro metric3d unidepth depth_anything \\
-        --stereo_models monster foundation defom selective \\
+        --mono_models  model_a model_b \\
+        --stereo_models model_c model_d \\
         --out_root /path/to/output \\
         --visualise
 """
@@ -118,13 +118,13 @@ def main():
 Example
 -------
     python pipelines/run_depth_analysis.py \\
-        --base /data/MODEST/Scene6 \\
-        --left_cam EOS6D_B_Left \\
-        --right_cam EOS6D_A_Right \\
+        --base /path/to/your_dataset/scene \\
+        --left_cam <left_camera_dir> \\
+        --right_cam <right_camera_dir> \\
         --fl 70 --F 2.8 \\
-        --mono_models depthpro metric3d unidepth depth_anything \\
-        --stereo_models monster foundation defom selective \\
-        --out_root /data/output \\
+        --mono_models model_a model_b \\
+        --stereo_models model_c model_d \\
+        --out_root /path/to/output \\
         --visualise
 """,
     )
@@ -138,12 +138,12 @@ Example
                         help="Focal length in mm.")
     parser.add_argument('--F',         type=float, required=True,
                         help="Aperture f-number.")
-    parser.add_argument('--mono_models',   nargs='+',
-                        default=['depthpro', 'metric3d', 'unidepth', 'depth_anything'],
-                        help="Keywords for monocular depth model files.")
-    parser.add_argument('--stereo_models', nargs='+',
-                        default=['monster', 'foundation', 'defom', 'selective'],
-                        help="Keywords for stereo depth model files.")
+    parser.add_argument('--mono_models',   nargs='+', required=True,
+                        help="Keywords identifying monocular depth model files "
+                             "(substrings matched against HDF5 filenames).")
+    parser.add_argument('--stereo_models', nargs='+', required=True,
+                        help="Keywords identifying stereo depth model files "
+                             "(substrings matched against HDF5 filenames).")
     parser.add_argument('--out_root',  default=None,
                         help="Root directory for output files.")
     parser.add_argument('--visualise', action='store_true',

@@ -18,44 +18,11 @@ from matplotlib.gridspec import GridSpec
 import cv2
 from tqdm import tqdm
 
-
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-# ---------- USER DATASOURCE (as provided) ----------
-datalist = [  
-   {
-       "base": r"I:\\My Drive\\Pubdata\\Scene6_illusions",
-       "cameras": ['EOS6D_A_Left', 'EOS6D_B_Right'],
-       "configs":[
-           #{"fl":28, "F":22}, 
-           {"fl":70, "F":16}, 
-        ]
-   },
-#   {
-#        "base": r"I:\\My Drive\\Pubdata\\Scene7",
-#        "cameras": ['EOS6D_B_Left', 'EOS6D_A_Right'],
-#        "configs":[
-#            {"fl":28, "F":22}, 
-#            {"fl":70, "F":2.8}, 
-#         ]
-#    },
-#    {
-#        "base": r"I:\\My Drive\\Pubdata\\Scene8",
-#        "cameras": ['EOS6D_A_Left', 'EOS6D_B_Right'],
-#        "configs":[
-#            {"fl":28, "F":22}, 
-#            {"fl":70, "F":2.8}, 
-#         ]
-#    },   
-#    {
-#        "base": r"I:\\My Drive\\Pubdata\\Scene9",
-#        "cameras": ['EOS6D_B_Left', 'EOS6D_A_Right'],
-#        "configs":[
-#            {"fl":28, "F":22}, 
-#            {"fl":70, "F":2.8}, 
-#         ]
-#    },
-]
+# ---------- USER DATASOURCE ----------
+# Populated at runtime via CLI arguments — see main().
+datalist = []
 
 # ---------- PARAMETERS ----------
 ROWS_PER_FIG = 1         # "Each figure has plots corresponding to the next 4 images"
@@ -66,30 +33,28 @@ DEPTH_KEY = "depth"
 RECT_LEFT_KEY = "rectified_lefts"
 RECT_RIGHT_KEY = "rectified_rights"
 
-# stereo model keywords to locate depth files case-insensitively
-MONO_MODELS = ['depthpro', 'metric3d', 'unidepth', 'depth_anything']
-STEREO_MODELS = ['monster', 'foundation', 'defom', 'selective']
-MODEL_KEYWORDS = MONO_MODELS + STEREO_MODELS
-# mapping of found filename -> friendly title (derived from keyword or filename)
-def friendly_title_from_name(fn):
+# Keywords used to locate depth files inside HDF5 folders (case-insensitive substring match).
+# Override at runtime via --mono_models / --stereo_models CLI arguments.
+MONO_MODELS: list = []
+STEREO_MODELS: list = []
+MODEL_KEYWORDS: list = []
+
+# User-extendable display-name map: keyword (lowercase) -> friendly label.
+# Populate before calling friendly_title_from_name(), e.g.:
+#   _NAME_MAP = {'model_a': 'My Model A', 'baseline': 'Baseline'}
+_NAME_MAP: dict = {}
+
+
+def friendly_title_from_name(fn: str) -> str:
+    """Return a display-friendly name for a model filename.
+
+    Looks up each key in :data:`_NAME_MAP` as a case-insensitive substring of
+    *fn*.  Falls back to the file stem if no match is found.
+    """
     name = fn.lower()
-    if 'monster' in name:
-        return 'MonSter'
-    if 'foundation' in name:
-        return 'FoundationStereo'
-    if 'defom' in name:
-        return 'Defom'
-    if 'selective' in name:
-        return 'Selective-IGEV'
-    if 'depthpro' in name:
-        return 'Depth Pro'
-    if 'metric3d' in name:
-        return 'Metric3D'
-    if 'unidepth' in name:
-        return 'UniDepth V2'
-    if 'depth_anything' in name:
-        return 'DAV2'    
-    # fallback: use file stem
+    for keyword, display in _NAME_MAP.items():
+        if keyword.lower() in name:
+            return display
     return Path(fn).stem
 
 # ---------- helpers ----------
@@ -437,6 +402,51 @@ def process_datalist(datalist):
         #     # continue to next config (spec requested try-except for each config)
         #     continue
 
-if __name__ == "__main__":
-    process_datalist(datalist)
-    logging.info("All done.")
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Depth sanity plots: rectified stereo pairs with depth maps.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Example
+-------
+    python visuals/mono_stereo_depths/sanity_plots.py \\
+        --base /path/to/scene \\
+        --left_cam <left_camera_dir> --right_cam <right_camera_dir> \\
+        --fl 70 --F 2.8 \\
+        --mono_models model_a model_b \\
+        --stereo_models model_c model_d
+""",
+    )
+    parser.add_argument('--base',         required=True,
+                        help='Root directory of the scene.')
+    parser.add_argument('--left_cam',     required=True,
+                        help='Left camera folder name.')
+    parser.add_argument('--right_cam',    required=True,
+                        help='Right camera folder name.')
+    parser.add_argument('--fl',           type=int,   required=True,
+                        help='Focal length in mm.')
+    parser.add_argument('--F',            type=float, required=True,
+                        help='Aperture f-number.')
+    parser.add_argument('--mono_models',  nargs='+',  required=True,
+                        help='Keywords identifying monocular depth HDF5 files.')
+    parser.add_argument('--stereo_models', nargs='+', required=True,
+                        help='Keywords identifying stereo depth HDF5 files.')
+    args = parser.parse_args()
+
+    global MONO_MODELS, STEREO_MODELS, MODEL_KEYWORDS
+    MONO_MODELS    = args.mono_models
+    STEREO_MODELS  = args.stereo_models
+    MODEL_KEYWORDS = MONO_MODELS + STEREO_MODELS
+
+    datalist_runtime = [{
+        'base':    args.base,
+        'cameras': [args.left_cam, args.right_cam],
+        'configs': [{'fl': args.fl, 'F': args.F}],
+    }]
+    process_datalist(datalist_runtime)
+    logging.info('All done.')
+
+
+if __name__ == '__main__':
+    main()

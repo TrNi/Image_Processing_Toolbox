@@ -33,8 +33,8 @@ Usage
     python file_tools/organise_files.py \\
         --src    /path/to/source_root \\
         --dst    /path/to/dest_root \\
-        --scene  SceneName \\
-        --cameras EOS6D_A EOS6D_B \\
+        --scene  <scene_name> \\
+        --cameras <camera_dir_A> <camera_dir_B> \\
         --fls    28 40 70 100 \\
         --apers  2.8 5.6 8.0 11.0 16.0 22.0
 """
@@ -136,8 +136,8 @@ Example
 -------
     python file_tools/organise_files.py \\
         --src /data/raw_captures --dst /data/processed \\
-        --scene Scene1 \\
-        --cameras EOS6D_A EOS6D_B \\
+        --scene <scene_name> \\
+        --cameras <camera_dir_A> <camera_dir_B> \\
         --fls 28 40 70 100 \\
         --apers 2.8 5.6 8.0 22.0 \\
         --dry_run

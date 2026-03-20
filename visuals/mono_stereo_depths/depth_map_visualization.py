@@ -16,37 +16,27 @@ plt.rcParams['mathtext.fontset'] = 'stix'  # for math equations to also use seri
 # %matplotlib inline
 
 # === USER INPUT ===
-# --- Provide the paths for the single scene you want to visualize ---
-# left_scene_path = "/content/drive/MyDrive/Pubdata/Scene9/EOS6D_B_Left/fl_70mm/inference/F2.8/rectified"
-# right_rgb_path = "/content/drive/MyDrive/Pubdata/Scene9/EOS6D_A_Right/fl_70mm/inference/F2.8/rectified/rectified_rights.h5"
-
-left_scene_path = "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_A_Left\\fl_70mm\\inference\\F16.0\\rectified\\"
-right_rgb_path = "I:\\My Drive\\Pubdata\\Scene6_illusions\\EOS6D_B_Right\\fl_70mm\\inference\\F16.0\\rectified\\rectified_rights.h5"
-
-# --- Define the depth models to display ---
-mono_model_files = [
-    "..\\monodepth\\depth_anything_v2_depths.h5",
-    "..\\monodepth\\depthpro_depths.h5",
-    "..\\monodepth\\metric3d_depths.h5",
-    "..\\monodepth\\unidepth_v2_depths.h5",
-]
-
-# Index of the frame to visualize from each H5 file stack
-frame_index = 27
+# All paths and parameters are supplied via CLI -- see main() below.
 
 # === HELPER FUNCTIONS ===
-def get_pretty_name(name):
-    """Converts a filename string to a display-friendly name."""
-    name = name.lower() # Make matching case-insensitive
-    if 'monster' in name: return 'MonSter'
-    if 'foundation' in name: return 'Foundation Stereo'
-    if 'defom' in name: return 'DEFOM Stereo'
-    if 'selective' in name: return 'Selective IGEV'
-    if 'depthpro' in name: return 'Depth Pro'
-    if 'metric3d' in name: return 'Metric3D V2'
-    if 'unidepth' in name: return 'UniDepth V2'
-    if 'depth_anything' in name: return 'DAV2'
-    return name # Return original name if no match
+
+# User-extendable display-name map: keyword (lowercase) -> friendly label.
+# Populate before calling get_pretty_name(), e.g.:
+#   _NAME_MAP = {'model_a': 'My Model A', 'baseline': 'Baseline'}
+_NAME_MAP: dict = {}
+
+
+def get_pretty_name(name: str) -> str:
+    """Return a display-friendly model name for a filename.
+
+    Looks up each key in :data:`_NAME_MAP` as a case-insensitive substring.
+    Falls back to the original name if no match is found.
+    """
+    n = name.lower()
+    for keyword, display in _NAME_MAP.items():
+        if keyword.lower() in n:
+            return display
+    return name
 
 def load_h5_dataset(file_path, key_hint='disparity', index=0):
     """Loads a dataset from an H5 file with robust error handling."""
@@ -100,45 +90,88 @@ def plot_depth(ax, data, vmin, vmax):
 
 # === MAIN SCRIPT ===
 
-# --- 1. Load all data first ---
-print("--- Loading Data ---")
-# a) Load Left RGB and Monocular Depths (Top Row)
-left_rgb_img = load_h5_dataset(os.path.join(left_scene_path, "rectified_lefts.h5"), key_hint='rectified', index=frame_index)
-mono_folder_path = left_scene_path.replace("/rectified", "/monodepth")
-mono_depths = []
-for model_file in mono_model_files:
-    depth = load_h5_dataset(os.path.join(mono_folder_path, model_file), key_hint='depth', index=frame_index)
-    if depth is not None:
-        title = get_pretty_name(model_file)
-        mono_depths.append({'map': np.squeeze(depth), 'title': title})
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="2-row depth-map figure: mono models (top) vs stereo models (bottom).",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Example
+-------
+    python visuals/mono_stereo_depths/depth_map_visualization.py \\
+        --left_scene /path/to/scene/rectified/ \\
+        --right_h5  /path/to/scene/rectified/rectified_rights.h5 \\
+        --mono_files mono_a.h5 mono_b.h5 \\
+        --frame 0
+""",
+    )
+    parser.add_argument('--left_scene',  required=True,
+                        help='Path to the left-camera rectified folder '
+                             '(must contain rectified_lefts.h5 and stereo depth *.h5 files).')
+    parser.add_argument('--right_h5',    required=True,
+                        help='Path to rectified_rights.h5.')
+    parser.add_argument('--mono_files',  nargs='+', default=[],
+                        help='Relative paths (from --left_scene/../monodepth/) '
+                             'to monocular depth HDF5 files.')
+    parser.add_argument('--frame',       type=int, default=0,
+                        help='Frame index to visualise (default: 0).')
+    args = parser.parse_args()
 
-# b) Load Right RGB and Stereo Depths (Bottom Row)
-right_rgb_img = load_h5_dataset(right_rgb_path, key_hint='rectified', index=frame_index)
-stereo_files = sorted([f for f in os.listdir(left_scene_path) if f.startswith("leftview_disp_depth") and f.endswith(".h5")])
-stereo_depths = []
-for stereo_file in stereo_files:
-    depth = load_h5_dataset(os.path.join(left_scene_path, stereo_file), key_hint='depth', index=frame_index)
-    if depth is not None:
-        if depth.ndim == 3 and depth.shape[-1] > 1:
-            depth = depth[..., 2] # Select 3rd channel for depth
-        title = get_pretty_name(stereo_file)
-        stereo_depths.append({'map': np.squeeze(depth), 'title': title})
+    left_scene_path = args.left_scene
+    right_rgb_path  = args.right_h5
+    mono_model_files = args.mono_files
+    frame_index      = args.frame
 
-# --- 2. Prepare figure and normalization ---
-if not mono_depths and not stereo_depths:
-    print("❌ No depth maps could be loaded. Exiting.")
-else:
-    combined_depths = mono_depths + stereo_depths
-    all_depths_flat = np.concatenate([d['map'].flatten() for d in combined_depths])
-    vmin, vmax = np.percentile(all_depths_flat, [0, 95])
-    print(f"\n🎨 Global 5-95 percentile depth range: [{vmin:.2f}, {vmax:.2f}]")
+    # --- 1. Load all data first ---
+    print("--- Loading Data ---")
+    left_rgb_img = load_h5_dataset(
+        os.path.join(left_scene_path, "rectified_lefts.h5"),
+        key_hint='rectified', index=frame_index,
+    )
+    mono_folder_path = os.path.join(
+        os.path.dirname(left_scene_path.rstrip('/\\')), "monodepth"
+    )
+    mono_depths = []
+    for model_file in mono_model_files:
+        depth = load_h5_dataset(
+            os.path.join(mono_folder_path, model_file),
+            key_hint='depth', index=frame_index,
+        )
+        if depth is not None:
+            mono_depths.append({'map': np.squeeze(depth),
+                                 'title': get_pretty_name(model_file)})
+
+    right_rgb_img = load_h5_dataset(right_rgb_path, key_hint='rectified', index=frame_index)
+    stereo_files  = sorted([
+        f for f in os.listdir(left_scene_path)
+        if f.endswith(".h5")
+    ])
+    stereo_depths = []
+    for stereo_file in stereo_files:
+        depth = load_h5_dataset(
+            os.path.join(left_scene_path, stereo_file),
+            key_hint='depth', index=frame_index,
+        )
+        if depth is not None:
+            if depth.ndim == 3 and depth.shape[-1] > 1:
+                depth = depth[..., 2]
+            stereo_depths.append({'map': np.squeeze(depth),
+                                   'title': get_pretty_name(stereo_file)})
+
+    # --- 2. Prepare figure and normalization ---
+    if not mono_depths and not stereo_depths:
+        print("No depth maps could be loaded. Exiting.")
+        return
+
+    combined_depths  = mono_depths + stereo_depths
+    all_depths_flat  = np.concatenate([d['map'].flatten() for d in combined_depths])
+    vmin, vmax       = np.percentile(all_depths_flat, [0, 95])
+    print(f"Global 5-95 percentile depth range: [{vmin:.2f}, {vmax:.2f}]")
 
     rows, cols = 2, 5
-    fig, axes = plt.subplots(rows, cols, figsize=(19, 6), squeeze=False)
+    fig, axes  = plt.subplots(rows, cols, figsize=(19, 6), squeeze=False)
 
-    # --- 3. Plot everything ---   
-
-    # Plot Row 1 & 2
+    # --- 3. Plot ---
     plot_rgb(axes[0, 0], left_rgb_img, "Left Image (ref)")
     for i, data in enumerate(mono_depths):
         plot_depth(axes[0, i + 1], data, vmin, vmax)
@@ -147,19 +180,20 @@ else:
     last_im = None
     for i, data in enumerate(stereo_depths):
         last_im = plot_depth(axes[1, i + 1], data, vmin, vmax)
-    
-    # Clean up unused axes
-    for i in range(len(mono_depths) + 1, cols): axes[0, i].axis('off')
+
+    for i in range(len(mono_depths) + 1, cols):   axes[0, i].axis('off')
     for i in range(len(stereo_depths) + 1, cols): axes[1, i].axis('off')
 
-    # Add a single, shared color bar
     if last_im:
-        # Adjusted hspace for a tighter layout
-        fig.subplots_adjust(left=0.005, right=0.96, top=0.99, bottom=0.01, hspace=-0.4, wspace=0.02)
+        fig.subplots_adjust(left=0.005, right=0.96, top=0.99, bottom=0.01,
+                            hspace=-0.4, wspace=0.02)
         cbar_ax = fig.add_axes([0.973, 0.155, 0.005, 0.69])
-        fig.colorbar(last_im, cax=cbar_ax) # Updated label with proper font size
+        fig.colorbar(last_im, cax=cbar_ax)
         cbar_ax.set_title("Depth (m)", fontsize=10, fontname='Times New Roman', pad=4)
     else:
         plt.tight_layout()
-    #plt.tight_layout()
     plt.show()
+
+
+if __name__ == '__main__':
+    main()

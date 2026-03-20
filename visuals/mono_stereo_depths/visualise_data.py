@@ -31,24 +31,8 @@ plt.rcParams['mathtext.fontset'] = 'stix'  # for math equations to also use seri
 plt.rcParams['axes.titlepad'] = 0.2
 
 # ========== USER INPUT ==========
-# List of 10 paths to visualize
-datalist = [
-
-    r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset\Scene1\EOS6D_B_Left\fl_28mm\inference\F22.0\IMG_3607.JPG",
-    r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset\Scene2\EOS6D_A_Left\fl_28mm\inference\F22.0\IMG_1690.JPG",
-    r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset\Scene3\EOS6D_B_Left\fl_28mm\inference\F22.0\IMG_8388.JPG",    
-    r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset\Scene4\EOS6D_B_Left\fl_32mm\inference\F22.0\IMG_1716.JPG",
-    r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset\Scene5\EOS6D_A_Left\fl_32mm\inference\F22.0\IMG_6547.JPG",
-    r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset\Scene6\EOS6D_B_Left\fl_32mm\inference\F22\IMG_6460.JPG",
-    r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset\Scene7\EOS6D_A_Left\fl_28mm\inference\F22.0\IMG_9828.JPG",
-    r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset\Scene8\EOS6D_B_Right\fl_50mm\inference\F22.0\IMG_0186.JPG",    
-    r"I:\My Drive\Pubdata\Public_Data_Do_Not_Modify\MODEST - Multi-optics DOF Stereo Dataset\Scene9\EOS6D_B_Right\fl_28mm\inference\F22.0\IMG_4954.JPG",
-    r"I:\My Drive\DoF_Datasets\MODEST2\DOF_Scene1\EOS6D_A_Right\fl_65mm\inference\F22.0\IMG_5444.JPG"
-    #r"I:\My Drive\DoF_Datasets\MODEST2\DOF_Scene1\EOS6D_A_Right\fl_45mm\inference\F22.0\IMG_4874.JPG",    
-]
-
-# Output directory for saving figures
-output_dir = r"H:\My Drive\Research_collabs\MODEST Research Collab\ECCV_Visuals"
+# Paths and output directory are supplied via CLI --images and --out_dir.
+# See the main() function below.
 
 # ========== HELPER FUNCTIONS ==========
 def load_data(file_path):
@@ -185,13 +169,34 @@ def create_visualization(datalist, output_dir):
 
 
 # ========== MAIN EXECUTION ==========
-if __name__ == "__main__":
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="2×5 CVPR-style grid figure from 10 images.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Example
+-------
+    python visuals/mono_stereo_depths/visualise_data.py \\
+        --images /data/scene1/img.jpg /data/scene2/img.jpg ... \\
+        --out_dir /path/to/output
+""",
+    )
+    parser.add_argument('--images', nargs=10, required=True, metavar='IMG',
+                        help='Exactly 10 image paths (one per scene panel).')
+    parser.add_argument('--out_dir', required=True,
+                        help='Directory where PNG, PDF and SVG are saved.')
+    args = parser.parse_args()
+
     print("=" * 60)
-    print("CVPR 2026 Data Visualization Script")
+    print("Data Visualization Script")
     print("=" * 60)
-    
-    create_visualization(datalist, output_dir)
-    
+    create_visualization(args.images, args.out_dir)
     print("\n" + "=" * 60)
     print("All done!")
     print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()

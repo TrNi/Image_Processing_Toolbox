@@ -85,17 +85,23 @@ LINESTYLES = ['--', '-.', ':', '--', '-', '-', '-', '-']
 # Helpers
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# User-extendable name map: add your model keywords → display names here.
+# ---------------------------------------------------------------------------
+_PRETTY_NAME_MAP: dict = {}
+
+
 def get_pretty_name(name: str) -> str:
-    """Return a display-friendly model name from a raw filename or keyword."""
+    """Return a display-friendly model name from a raw filename keyword.
+
+    Looks up *name* (case-insensitive substring) in :data:`_PRETTY_NAME_MAP`.
+    Add your own model names there before calling this function.
+    Falls back to *name* unchanged if no match is found.
+    """
     n = name.lower()
-    if 'monster'        in n: return 'MonSter'
-    if 'foundation'     in n: return 'Foundation Stereo'
-    if 'defom'          in n: return 'DEFOM Stereo'
-    if 'selective'      in n: return 'Selective IGEV'
-    if 'depthpro'       in n: return 'Depth Pro'
-    if 'metric3d'       in n: return 'Metric3D V2'
-    if 'unidepth'       in n: return 'UniDepth V2'
-    if 'depth_anything' in n: return 'DAV2'
+    for keyword, display in _PRETTY_NAME_MAP.items():
+        if keyword.lower() in n:
+            return display
     return name
 
 
@@ -187,8 +193,8 @@ def plot_error_maps(error_maps: dict, model_names: list, save_dir, idx: int,
     idx : int
         Image index to visualise.
     target_model : str, optional
-        If given, only render this model.  Default: renders the first model
-        whose name contains 'foundation'.
+        If given, only render the model whose pretty-name contains this string.
+        If ``None``, the first model in *model_names* is rendered.
     """
     error_plotnames = {"grad": "Gradient", "plan": "Planarity", "icp": "ICP", "iqr": "IQR"}
     error_types = ['grad', 'plan', 'icp', 'iqr']
@@ -203,7 +209,7 @@ def plot_error_maps(error_maps: dict, model_names: list, save_dir, idx: int,
             if target_model.lower() not in model_name.lower():
                 continue
         else:
-            if 'foundation' not in model_name.lower():
+            if model != model_names[0]:
                 continue
 
         fig = plt.figure(figsize=(5.76, 1.2))

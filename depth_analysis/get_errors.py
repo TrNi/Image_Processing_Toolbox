@@ -64,17 +64,24 @@ DEPTH_KEY      = 'depth'
 # Name-mapping helpers
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# User-extendable name map: populate with your model keywords → display names.
+# e.g. _PRETTY_NAME_MAP = {'my_model': 'My Model v2', 'baseline': 'Baseline'}
+# ---------------------------------------------------------------------------
+_PRETTY_NAME_MAP: dict = {}
+
+
 def get_pretty_name(name: str) -> str:
-    """Return a display-friendly model name from a raw filename or keyword."""
+    """Return a display-friendly model name from a raw filename keyword.
+
+    Looks up *name* (case-insensitive substring) in :data:`_PRETTY_NAME_MAP`.
+    Populate that dict with your model keywords before calling this function.
+    Falls back to *name* unchanged if no match is found.
+    """
     n = name.lower()
-    if 'monster'       in n: return 'MonSter'
-    if 'foundation'    in n: return 'Foundation Stereo'
-    if 'defom'         in n: return 'DEFOM Stereo'
-    if 'selective'     in n: return 'Selective IGEV'
-    if 'depthpro'      in n: return 'Depth Pro'
-    if 'metric3d'      in n: return 'Metric3D V2'
-    if 'unidepth'      in n: return 'UniDepth V2'
-    if 'depth_anything' in n: return 'DAV2'
+    for keyword, display in _PRETTY_NAME_MAP.items():
+        if keyword.lower() in n:
+            return display
     return name
 
 
@@ -403,8 +410,10 @@ own pipeline script) then run:
 
     python depth_analysis/get_errors.py \\
         --base /path/to/scene \\
-        --left_cam EOS6D_B_Left --right_cam EOS6D_A_Right \\
+        --left_cam <left_camera_dir> --right_cam <right_camera_dir> \\
         --fl 70 --F 2.8 \\
+        --mono_models model_a model_b \\
+        --stereo_models model_c model_d \\
         --out_root /path/to/output
 """,
     )
@@ -420,12 +429,12 @@ own pipeline script) then run:
                         help="Aperture f-number (e.g. 2.8).")
     parser.add_argument('--out_root', default=None,
                         help="Root directory for output files (default: next to input).")
-    parser.add_argument('--mono_models',   nargs='+',
-                        default=['depthpro', 'metric3d', 'unidepth', 'depth_anything'],
-                        help="Keywords for monocular depth model files.")
-    parser.add_argument('--stereo_models', nargs='+',
-                        default=['monster', 'foundation', 'defom', 'selective'],
-                        help="Keywords for stereo depth model files.")
+    parser.add_argument('--mono_models',   nargs='+', required=True,
+                        help="Keywords identifying monocular depth model files "
+                             "(substrings matched against HDF5 filenames).")
+    parser.add_argument('--stereo_models', nargs='+', required=True,
+                        help="Keywords identifying stereo depth model files "
+                             "(substrings matched against HDF5 filenames).")
     args = parser.parse_args()
 
     datalist = [{
