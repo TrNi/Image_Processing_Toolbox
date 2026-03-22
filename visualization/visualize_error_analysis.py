@@ -355,7 +355,7 @@ def analyze_error_distributions(error_aggr: dict, save_dir: Path):
     plan_scale   = 1e6
 
     headers = [
-        [f"# Planarity, RMS Orth, Preal, Pnorm errors scaled by {plan_scale}."],
+        [f"# Planarity and RMS Orth errors scaled by {plan_scale}; Prel and Pnorm are unscaled."],
         ['model', 'error_type'] + [f'p{p}' for p in percentiles],
     ]
     csv_data = []
@@ -363,7 +363,7 @@ def analyze_error_distributions(error_aggr: dict, save_dir: Path):
     for model_name, model_errors in error_aggr.items():
         for et in error_types:
             vals = model_errors[et].flatten()
-            if et in ["plan", "rms_orth", "Prel", "Pnorm"]:
+            if et in ["plan", "rms_orth"]:
                 vals = vals * plan_scale
             pct_vals = np.percentile(vals, percentiles)
             csv_data.append([model_name, et] + [f'{v:.6f}' for v in pct_vals])
@@ -383,7 +383,7 @@ def analyze_error_distributions(error_aggr: dict, save_dir: Path):
 
     for et in error_types:
         plt.figure(figsize=(10, 6))
-        scale = plan_scale if et in ['plan', 'rms_orth', 'Prel', 'Pnorm'] else 1
+        scale = plan_scale if et in ['plan', 'rms_orth'] else 1
 
         for i, (model_name, model_errors) in enumerate(error_aggr.items()):
             vals   = model_errors[et].flatten() * scale

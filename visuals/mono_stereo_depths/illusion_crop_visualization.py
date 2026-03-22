@@ -1,7 +1,7 @@
-# If requested frame index exceeds available frames in H5, 
-# the code automatically loads the last valid frame instead, 
-# ensuring no index errors or crashes occur. 
-# example -> scene 6,7,8,9 stereo depth has only till fram index 2 , so it limits the mono to go to frame index 2import os
+# If requested frame index exceeds available frames in H5,
+# the code automatically loads the last valid frame instead,
+# ensuring no index errors or crashes occur.
+import os
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,7 +9,6 @@ import cv2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.colors import LogNorm
 import matplotlib.colors as mcolors
-import os
 import matplotlib.font_manager as fm
 import matplotlib.ticker as mticker
 from matplotlib.ticker import LogLocator, FormatStrFormatter
@@ -95,7 +94,7 @@ def plot_depth(ax, data, vmin, vmax, cmap):
     
     # NEW: Combine title and stats into a single line
     d_5, d_95 = np.percentile(depth_small, [5, 95])
-    title_prefix = "m:" if any(c.isalpha() and c.islower() for c in data.get('is_mono', 'n')) else "s:"
+    title_prefix = "m:" if data.get('is_mono', False) else "s:"
     full_title = f"{title_prefix}{data['title']}  ({d_5:.2f} - {d_95:.2f}m)"
     ax.set_title(full_title, pad=1, loc='center')
     
@@ -137,7 +136,8 @@ def _process_entries(datalist, stereonames, mononames, frame_index):
                                             key_hint='depth', index=frame_index)
                     if depth is not None:
                         unordered_mono_depths.append(
-                            {'map': np.squeeze(depth), 'title': get_pretty_name(mono_file)}
+                            {'map': np.squeeze(depth), 'title': get_pretty_name(mono_file),
+                             'is_mono': True}
                         )
 
         right_rgb_img = load_h5_dataset(right_h5_path, key_hint='rectified', index=frame_index)
@@ -153,7 +153,8 @@ def _process_entries(datalist, stereonames, mononames, frame_index):
                         if depth.ndim == 3 and depth.shape[-1] > 1:
                             depth = depth[..., 2]
                         unordered_stereo_depths.append(
-                            {'map': np.squeeze(depth), 'title': get_pretty_name(stereo_file)}
+                            {'map': np.squeeze(depth), 'title': get_pretty_name(stereo_file),
+                             'is_mono': False}
                         )
 
         if not unordered_mono_depths and not unordered_stereo_depths:

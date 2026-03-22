@@ -453,6 +453,10 @@ Anonymise model names (stereo 0, stereo 1, …):
                         help="First image index to visualise.")
     parser.add_argument('--anonymous', action='store_true',
                         help="Replace model names with 'stereo 0', 'mono 0', etc.")
+    parser.add_argument('--stereo_kw', nargs='+', default=[],
+                        metavar='KW',
+                        help="Keywords that identify stereo models when using --anonymous "
+                             "(case-insensitive substring match against model name).")
     args = parser.parse_args()
 
     depth_paths = {}
@@ -465,7 +469,7 @@ Anonymise model names (stereo 0, stereo 1, …):
     if args.anonymous:
         anon_paths = {}
         s_idx = m_idx = 0
-        stereo_kw = ['monster', 'selective', 'defom', 'foundation']
+        stereo_kw = [kw.lower() for kw in args.stereo_kw]
         for k, v in depth_paths.items():
             if any(kw in k.lower() for kw in stereo_kw):
                 anon_paths[f'stereo {s_idx}'] = v; s_idx += 1

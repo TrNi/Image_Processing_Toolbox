@@ -1,13 +1,12 @@
-# If requested frame index exceeds available frames in H5, 
-# the code automatically loads the last valid frame instead, 
-# ensuring no index errors or crashes occur. 
-# example -> scene 6,7,8,9 stereo depth has only till fram index 2 , so it limits the mono to go to frame index 2import os
+# If requested frame index exceeds available frames in H5,
+# the code automatically loads the last valid frame instead,
+# ensuring no index errors or crashes occur.
+import os
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-import os
 import matplotlib.font_manager as fm
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']

@@ -2,8 +2,8 @@
 """
 visualise_data.py
 
-CVPR 2026 style plotting script for visualizing data across 10 scenes.
-Creates a 2x5 grid with minimal padding and saves in multiple formats.
+Publication-style 2×5 grid figure for visualising data across 10 scenes.
+Saves in PNG, PDF and SVG with minimal padding.
 
 Requirements:
     pip install numpy matplotlib h5py opencv-python

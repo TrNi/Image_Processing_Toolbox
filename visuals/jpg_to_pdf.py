@@ -2,7 +2,10 @@ import os
 from PIL import Image
 import numpy as np
 import h5py
-import rawpy
+try:
+    import rawpy
+except ImportError:
+    rawpy = None
 
 
 def trim_and_save_as_pdf(image_path, row_trim_per_side, col_trim_per_side, pdf_dpi, save_path):
@@ -209,7 +212,7 @@ def process_image_list(image_list, save_dir):
     print(f"\nProcessing complete! PDFs saved to: {save_dir}")
 
 
-if __name__ == "__main__":
+def main():
     import argparse
     parser = argparse.ArgumentParser(
         description="Trim images/HDF5 arrays and save as high-DPI PDF + PNG.",
@@ -253,3 +256,7 @@ Examples
                        args.row_trim, args.col_trim, args.dpi)]
 
     process_image_list(image_list, args.out_dir)
+
+
+if __name__ == "__main__":
+    main()

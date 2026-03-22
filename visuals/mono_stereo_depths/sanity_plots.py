@@ -13,10 +13,9 @@ from pathlib import Path
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
-from matplotlib import cm, colors, colormaps
+from matplotlib import colors, colormaps
 from matplotlib.gridspec import GridSpec
 import cv2
-from tqdm import tqdm
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
