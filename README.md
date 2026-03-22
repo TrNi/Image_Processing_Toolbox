@@ -18,6 +18,7 @@ It provides end-to-end utilities for **depth quality assessment**, **no-referenc
   - [calibration](#calibration)
   - [pipelines](#pipelines)
   - [visuals](#visuals)
+  - [collage\_maker](#collage_maker)
 - [Quick-Start Examples](#quick-start-examples)
 - [Dataset Conventions](#dataset-conventions)
 - [Contributing](#contributing)
@@ -34,6 +35,7 @@ It provides end-to-end utilities for **depth quality assessment**, **no-referenc
 | **File Tools** | HDF5 pack/extract/merge, `.npy → .h5`, `.pkl → .h5`, CSV manifests, Google Drive ID resolution |
 | **Calibration** | ChArUco board PDF generator (configurable square / marker size, dictionary) |
 | **Pipelines** | Single-command full error-computation → save → visualise workflow |
+| **Collage Maker** | 7-tile and 13-tile publication-width collage generators (PIL + OpenCV backends, PDF output) |
 
 ---
 
@@ -98,7 +100,16 @@ Image_Processing_Toolbox/
 │   ├── __init__.py
 │   ├── jpg_to_pdf.py                Trim + export images/HDF5 frames as PDF
 │   ├── merge_imgs.py                Combine 4 images into a 1×4 CVPR figure
-│   └── mono_stereo_depths/          Scene-specific depth visualisation helpers
+│   └── mono_stereo_depths/          Depth visualisation helpers (sanity plots, illusion crops)
+│       ├── depth_map_visualization.py
+│       ├── illusion_crop_visualization.py
+│       ├── prepare_jpg_h5.py
+│       ├── sanity_plots.py
+│       └── visualise_data.py
+│
+├── collage_maker/                   ← Publication-quality image collage generators
+│   ├── make_collage.py              7-tile asymmetric collage (ICCP column width)
+│   └── make_collage_13imgs.py       13-tile labelled collage with category strips
 │
 ├── requirements.txt
 └── README.md
@@ -248,6 +259,53 @@ python pipelines/run_depth_analysis.py \
 python pipelines/run_depth_analysis_folders.py \
     --root /data/output \
     --pattern "**/err_GT/error_data.pkl"
+```
+
+---
+
+### collage\_maker
+
+> Assemble multiple images into a single publication-quality figure.
+> Both scripts target **ICCP single-column width** (6.5 in default) and save
+> PNG + PDF at the requested DPI.
+
+| Script | Layout | Key arguments |
+|---|---|---|
+| `make_collage.py` | 7-tile asymmetric grid — 1 tall panel left, 3-row centre block, 1 tall panel right | `images` (7 paths), `--backend`, `--width-in`, `--dpi`, `--gap`, `--height-ratio`, `--output` |
+| `make_collage_13imgs.py` | 13-tile grid with 3 labelled category strips (vertical) | `images` (13 paths), `--backend`, `--labels` (3 strings), `--width-in`, `--dpi`, `--gap`, `--output` |
+
+**Layout diagrams** are shown in each script's module docstring (`python -c "import collage_maker.make_collage; help(collage_maker.make_collage)"`).
+
+**Backends:** `pil` (Pillow, default) · `cv2` (OpenCV) · `both` (render both in one call).
+
+```bash
+# 7-tile collage at 600 DPI
+python collage_maker/make_collage.py \
+    img1.jpg img2.jpg img3.jpg img4.jpg img5.jpg img6.jpg img7.jpg \
+    --backend pil --dpi 600 --output figures/collage7
+
+# 13-tile collage with custom labels
+python collage_maker/make_collage_13imgs.py \
+    img01.jpg img02.jpg ... img13.jpg \
+    --labels "Reflective" "Transparent" "Fine Details" \
+    --backend both --dpi 300 --output figures/collage13
+```
+
+**Programmatic API:**
+
+```python
+from pathlib import Path
+from collage_maker.make_collage import make_collage
+
+make_collage(
+    images=[Path(f"img{i}.jpg") for i in range(1, 8)],
+    backend="pil",
+    width_in=6.5,
+    dpi=600,
+    gap=4,
+    height_ratio=3.5 / 6.5,
+    output=Path("figures/collage"),
+)
 ```
 
 ---
